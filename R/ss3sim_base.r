@@ -47,7 +47,11 @@
 #' @param bias_adjust Run bias adjustment first? See \code{\link{run_bias_ss3}}.
 #' @param bias_nsim If bias adjustment is run, how many simulations should the
 #'   bias adjustment factor be estimated from? It will take the mean of the
-#'   adjustment factors across these runs.
+#'   adjustment factors across these runs. This value represents the desired
+#'   number of bias adjustment runs. The function will attempt to achieve this
+#'   number until \code{max_bias_tries} is reached.
+#' @param max_bias_tries The maximum number of bias adjustment runs to attempt
+#'   before giving up and moving on.
 #' @param bias_already_run If you've already run the bias runs for a scenario
 #'   (the bias folders and \code{.dat} files already exist) then you can set
 #'   this to \code{TRUE} to avoid re-running the bias adjustment routine.
@@ -176,7 +180,7 @@ ss3sim_base <- function(iterations, scenarios, f_params,
   estim_params = NULL, tv_params = NULL, om_dir, em_dir,
   retro_params = NULL, data_params = NULL, call_change_data = TRUE,
   user_recdevs = NULL, user_recdevs_warn = TRUE, bias_adjust = FALSE,
-  bias_nsim = 5, bias_already_run = FALSE, hess_always = FALSE,
+  bias_nsim = 5, max_bias_tries = 7, bias_already_run = FALSE, hess_always = FALSE,
   print_logfile = TRUE, sleep = 0, conv_crit = 0.2, seed = 21, ...) {
 
   # In case ss3sim_base is stopped before finishing:
@@ -185,11 +189,13 @@ ss3sim_base <- function(iterations, scenarios, f_params,
 
   # The first bias_nsim runs will be bias-adjustment runs
   if(bias_adjust) {
-    iterations <- c(paste0("bias/", c(1:bias_nsim)), iterations)
+    iterations <- c(paste0("bias/", c(1:max_bias_tries)), iterations)
   }
 
   for(sc in scenarios) {
-    for(i in iterations) {
+    ii <- 1
+    while(ii <= length(iterations)) { # `ii` is an index of `iterations`
+      i <- iterations[ii] # `i` is the name of the iteration itself
 
       # Create folders, copy models, check for necessary files, rename
       # files for consistency
@@ -499,16 +505,34 @@ ss3sim_base <- function(iterations, scenarios, f_params,
       run_ss3model(scenarios = sc, iterations = i, type = "em",
         hess = hess, ...)
 
-      # Should we run bias adjustment? We should if bias_adjust is
-      # true, and we are done running bias adjustments (i.e. we're on
-      # the last "bias" iteration), and we haven't already run this
-      # yet.
-      if(bias_adjust & i == pastef("bias", bias_nsim) & !bias_already_run) {
-        run_bias_ss3(dir = pastef(sc, "bias"), outdir = pastef(sc,
-            "bias"), nsim = bias_nsim, conv_crit = conv_crit)
-        bias_already_run <- TRUE
-      # Since we've now run the bias adjustment routine, copy the .ctl
-      # on subsequent iterations
+      ii <- ii + 1 # increment for next iteration
+
+      # Check: if we're running bias iterations, do we have enough?
+      # If we don't, and we're less than `max_bias_tries`, run another bias run (keep going)
+      # If we have enough runs then skip to the first non-bias run and run the
+      # adjustment routine.
+      if(bias_adjust & !bias_already_run) {
+        # count how many covariance matrices have been created:
+        hess <- vapply(iterations[1:(ii - 1)], function(x)
+          file.exists(file.path(sc, x, "em", "admodel.cov")),
+          FUN.VALUE = logical(1))
+        num_hess <- sum(hess)
+        # Should we run bias adjustment? We should if bias_adjust is
+        # true, and we are done running bias adjustments (i.e. we're on
+        # the last "bias" iteration to try or got enough to converge),
+        # and we haven't already run this yet.
+        if(num_hess >= bias_nsim | i == pastef("bias", max_bias_tries)) {
+          run_bias_ss3(
+            dir = pastef(sc, "bias"),
+            outdir = pastef(sc, "bias"),
+            nsim = bias_nsim,
+            conv_crit = conv_crit)
+          # Since we've now run the bias adjustment routine, copy the .ctl
+          # on subsequent iterations:
+          bias_already_run <- TRUE
+          # Take the first non-bias adjustment run:
+          ii <- seq_along(iterations)[!grepl("bias", iterations)][1]
+        }
       }
 
 # TODO pull the log file writing into a separate function and update

@@ -20,6 +20,14 @@ test_that("A basic run_ss3sim scenario runs", {
   unlink("D0-F0-cod", recursive = TRUE) # clean up
 })
 
+test_that("A basic run_ss3sim scenario runs with bias adjustment", {
+  skip_on_cran()
+  run_ss3sim(iterations = 1, scenarios = "D0-F0-cod", bias_adjust = TRUE,
+    bias_nsim = 1, max_bias_tries = 2, case_folder = case_folder,
+    om_dir = om, em_dir = em, ss_mode = "optimized")
+  unlink("D0-F0-cod", recursive = TRUE) # clean up
+})
+
 test_that("run_ss3sim works with parallel iterations", {
   skip_on_cran()
   library("doParallel")

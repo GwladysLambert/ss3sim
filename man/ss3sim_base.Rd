@@ -10,8 +10,8 @@ ss3sim_base(iterations, scenarios, f_params, index_params, lcomp_params,
   tv_params = NULL, om_dir, em_dir, retro_params = NULL,
   data_params = NULL, call_change_data = TRUE, user_recdevs = NULL,
   user_recdevs_warn = TRUE, bias_adjust = FALSE, bias_nsim = 5,
-  bias_already_run = FALSE, hess_always = FALSE, print_logfile = TRUE,
-  sleep = 0, conv_crit = 0.2, seed = 21, ...)
+  max_bias_tries = 7, bias_already_run = FALSE, hess_always = FALSE,
+  print_logfile = TRUE, sleep = 0, conv_crit = 0.2, seed = 21, ...)
 }
 \arguments{
   \item{iterations}{Which iterations to run. A numeric
@@ -96,7 +96,14 @@ ss3sim_base(iterations, scenarios, f_params, index_params, lcomp_params,
   \item{bias_nsim}{If bias adjustment is run, how many
   simulations should the bias adjustment factor be
   estimated from? It will take the mean of the adjustment
-  factors across these runs.}
+  factors across these runs. This value represents the
+  desired number of bias adjustment runs. The function will
+  attempt to achieve this number until
+  \code{max_bias_tries} is reached.}
+
+  \item{max_bias_tries}{The maximum number of bias
+  adjustment runs to attempt before giving up and moving
+  on.}
 
   \item{bias_already_run}{If you've already run the bias
   runs for a scenario (the bias folders and \code{.dat}
