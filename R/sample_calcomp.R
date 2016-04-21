@@ -69,6 +69,7 @@ sample_calcomp <- function(dat_list, outfile, fleets = c(1,2), years,
   ## (for which there will be a row for each length bin) and then
   ## recombine them later.
   newcomp.list <- list() # temp storage for the new rows
+  newcomp.len.list <- list() # temp storage for the new rows
   k <- 1                 # each k is a new row of data, to be rbind'ed later
   
   if (fixed.number==F) {
