@@ -152,11 +152,23 @@ clean_data <- function(dat_list, index_params=NULL, lcomp_params=NULL,
                          calcomp$Yr %in% calcomp_params$years[[i]],]))
       } else if(is.null(agecomp_params$fleets) & !is.null(calcomp_params$fleets)){
           ## case with only cal comps
-          new.agecomp <- NULL
+        ## Do not remove age comp info but turn it off so it still esstimates it but not in loglik
+          #new.agecomp <- NULL
+          new.agecomp <- do.call(rbind,
+                               lapply(1:length(agecomp_params$fleets), function(i)
+                                 agecomp[agecomp$FltSvy == agecomp_params$fleets[i] &
+                                           agecomp$Yr %in% agecomp_params$years[[i]],]))
+          new.agecomp$Yr <- c(- new.agecomp$Yr)
           new.calcomp <- do.call(rbind,
          lapply(1:length(calcomp_params$fleets), function(i)
              calcomp[calcomp$FltSvy == calcomp_params$fleets[i] &
                          calcomp$Yr %in% calcomp_params$years[[i]],]))
+          # 
+          newfile$agecomp <- make_dummy_dat_agecomp(fleets, years, as.numeric(newcomp.final[1,-(1:9)]))
+          newfile$agecomp$Yr <- c(-newfile$agecomp$Yr)
+          names(newfile$agecomp) <- names(newcomp.final)
+          newfile$agecomp <- rbind(newfile$agecomp,newcomp.final)
+          
       }
     ## Create clean dat file
     dat_list$agecomp <- rbind(new.agecomp, new.calcomp)
