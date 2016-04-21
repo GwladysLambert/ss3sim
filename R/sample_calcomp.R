@@ -255,6 +255,8 @@ sample_calcomp <- function(dat_list, outfile, fleets = c(1,2), years,
   ## Combine back together into final data frame with the different data
   ## types
   newcomp.final <- do.call(rbind, newcomp.list)
+  
+
   # Combine length
   newcomp.len.final <- do.call(rbind, newcomp.len.list)
   newfile$lencomp <- newcomp.len.final
@@ -276,8 +278,13 @@ sample_calcomp <- function(dat_list, outfile, fleets = c(1,2), years,
   } else {
     ## only cal
     if(NROW(agecomp.cal)>0){
-      newfile$agecomp <- newcomp.final
+      ## Add dummy variables for agecomp (assuming that age comp is not in thre already) and turn it off so it is estimated but not used in log-lik
+      newfile$agecomp <- make_dummy_dat_agecomp(fleets, years, as.numeric(newcomp.final[1,-(1:9)]))
+      newfile$agecomp$Yr <- c(-newfile$agecomp$Yr)
+      names(newfile$agecomp) <- names(newcomp.final)
+      newfile$agecomp <- rbind(newfile$agecomp,newcomp.final)
       newfile$N_agecomp <- NROW(newcomp.final)
+
     } else {
       ## no age nor cal data
       newfile$agecomp <- NULL
