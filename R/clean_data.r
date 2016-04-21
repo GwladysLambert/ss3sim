@@ -163,7 +163,7 @@ clean_data <- function(dat_list, index_params=NULL, lcomp_params=NULL,
           lapply(1:length(calcomp_params$fleets), function(i)
              calcomp[calcomp$FltSvy == calcomp_params$fleets[i] &
                          calcomp$Yr %in% calcomp_params$years[[i]],]))
-          new.agecomp$Nsamp <- aggregate(Nsamp ~ Yr,new.calcomp, sum)
+          new.agecomp$Nsamp <- aggregate(Nsamp ~ Yr,new.calcomp, sum)[,2]
           # 
       }
     ## Create clean dat file
