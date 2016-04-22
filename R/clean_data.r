@@ -63,7 +63,7 @@
 #' @export
 clean_data <- function(dat_list, index_params=NULL, lcomp_params=NULL,
                        agecomp_params=NULL, calcomp_params=NULL,
-                       mlacomp_params=NULL, verbose=FALSE,fit.on.agecomp=T){
+                       mlacomp_params=NULL, verbose=FALSE,fit.on.agecomp=T, add.MLA=T){
     ## Should somehow have a check that dat_list is valid. None for now.
     ## Note that verbose=TRUE will print how many rows are removed. The
     ## sampling functions should themselves remove data for most cases, but
@@ -165,12 +165,80 @@ clean_data <- function(dat_list, index_params=NULL, lcomp_params=NULL,
                          calcomp$Yr %in% calcomp_params$years[[i]],]))
           new.agecomp$Nsamp <- aggregate(Nsamp ~ Yr,new.calcomp, sum)[,2]
           # 
+          
           if (fit.on.agecomp==T) {
             new.agecomp$FltSvy <- c(- new.agecomp$FltSvy)
             new.calcomp$FltSvy <- c(- new.calcomp$FltSvy)
           }
+          
+          if (add.MLA==T) {
+            
+            
+            # needs to become a separate function
+            
+            new.calcomp.sel <- new.calcomp[,c(1,3,7,9,10:ncol(new.calcomp))]
+            names(new.calcomp.sel)[5:ncol(new.calcomp.sel)] <- seq_along(names(new.calcomp.sel)[5:ncol(new.calcomp.sel)])
+            new.calcomp.sel <- melt(new.calcomp.sel, id=c("Yr","FltSvy","Lbin_lo","Nsamp"))
+            new.calcomp.sel$Age <- as.numeric(as.character(new.calcomp.sel$variable))
+            new.calcomp.sel$Nb <- as.numeric(new.calcomp.sel$value)
+            
+            samplesize <- aggregate(Nb ~ Yr + FltSvy + Age, new.calcomp.sel, sum)
+            samplesize <- cast(samplesize, Yr + FltSvy ~ Age, sum, value="Nb") #format
+            
+            new.calcomp.sel$Percentage <- new.calcomp.sel$Nb/new.calcomp.sel$Nsamp
+            
+            #merge with real number of lengths
+            new.lencomp.sel <- dat_list$lencomp[,c(1,3,6:ncol(dat_list$lencomp))]
+            new.lencomp.sel <- melt(new.lencomp.sel, id=c("Yr","FltSvy","Nsamp"))
+            new.lencomp.sel$Length <- as.numeric(as.character(new.lencomp.sel$variable))
+            new.lencomp.sel$Nb.len <- as.numeric(new.lencomp.sel$value)
+            
+            new.calcomp.sel <- merge(new.lencomp.sel, new.calcomp.sel, by=c("Yr","FltSvy"), all.y=T)
+            new.calcomp.sel$real.nb <- new.calcomp.sel$Nb.len*new.calcomp.sel$Percentage
+            new.calcomp.sel$real.nb.len <- new.calcomp.sel$real.nb*new.calcomp.sel$Length
+            
+            res <- aggregate( cbind(real.nb,real.nb.len) ~ Yr+ FltSvy + Age, new.calcomp.sel, sum)
+            res$MLA <- res$real.nb.len/res$real.nb
+            res <- cast(res, Yr+FltSvy ~ Age, fun= mean, value="MLA") 
+            
+            # If missing value of MLA replace with closest year data for each survey!
+            for (k in unique(res$FltSvy)) {
+              for (i in 3:ncol(res[res$FltSvy==k,])){
+                for (j in 1:nrow(res[res$FltSvy==k,])){
+                  if (is.na(res[res$FltSvy==k,][j,i])) {
+                    xx <- min(abs(j - which(!is.na(res[res$FltSvy==k,][,i]))))
+                    if (!is.na(res[res$FltSvy==k,][j+xx,i])){
+                      res[res$FltSvy==k,][j,i] <- res[res$FltSvy==k,][j+xx,i]
+                    } else {res[res$FltSvy==k,][j,i] <- res[res$FltSvy==k,][j-xx,i]}
+                  }
+                }
+              }  
+            }
+            
+            # Now format for SS
+            
+            x <- cbind.data.frame(new.agecomp[,c(1:6)],Ignore=1,new.agecomp[,c(10:dim(new.agecomp)[2])])
+            
+            for (i in unique(x$Yr)) {
+              for (j in unique(x$FltSvy)) {
+                x[x$Yr==i & x$FltSvy==j,8:ncol(x)] <- res[res$Yr==i & res$FltSvy==j,3:ncol(res)]
+              }
+            }
+            
+            samplesize <- cbind.data.frame(Yr=samplesize[,c(1)],Seas=1,FltSvy=samplesize[,2],Gender=0, Part=0,AgeErr=1,Ignore=1,samplesize[,c(3:ncol(samplesize))]) 
+            names(samplesize) <- names(x)
+            final <- rbind(x,samplesize)
+            final <- final[order(final$Yr,final$FltSvy),]
+            
+            for (i in seq(2,dim(final)[1],by=2)) { final[i,1:7]<-""}
+            
+            dat_list$MeanSize_at_Age_obs<-final
+            dat_list$N_MeanSize_at_Age_obs<-nrow(final)/2
+            
           }
-
+          
+      }
+    
     ## Create clean dat file
     dat_list$agecomp <- rbind(new.agecomp, new.calcomp)
     dat_list$N_agecomp <- NROW(dat_list$agecomp)
