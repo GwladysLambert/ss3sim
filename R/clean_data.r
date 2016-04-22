@@ -63,7 +63,7 @@
 #' @export
 clean_data <- function(dat_list, index_params=NULL, lcomp_params=NULL,
                        agecomp_params=NULL, calcomp_params=NULL,
-                       mlacomp_params=NULL, verbose=FALSE ){
+                       mlacomp_params=NULL, verbose=FALSE,fit.on.agecomp=T){
     ## Should somehow have a check that dat_list is valid. None for now.
     ## Note that verbose=TRUE will print how many rows are removed. The
     ## sampling functions should themselves remove data for most cases, but
@@ -165,7 +165,12 @@ clean_data <- function(dat_list, index_params=NULL, lcomp_params=NULL,
                          calcomp$Yr %in% calcomp_params$years[[i]],]))
           new.agecomp$Nsamp <- aggregate(Nsamp ~ Yr,new.calcomp, sum)[,2]
           # 
-      }
+          if (fit.on.agecomp==T) {
+            new.agecomp$Yr <- c(- new.agecomp$Yr)
+            new.calcomp$Yr <- c(- new.calcomp$Yr)
+          }
+          }
+
     ## Create clean dat file
     dat_list$agecomp <- rbind(new.agecomp, new.calcomp)
     dat_list$N_agecomp <- NROW(dat_list$agecomp)
