@@ -189,6 +189,7 @@ clean_data <- function(dat_list, index_params=NULL, lcomp_params=NULL,
             
             #merge with real number of lengths
             new.lencomp.sel <- dat_list$lencomp[,c(1,3,6:ncol(dat_list$lencomp))]
+            names(new.lencomp.sel)[4:ncol(new.lencomp.sel)] <- dat_list$"lbin_vector" 
             new.lencomp.sel <- melt(new.lencomp.sel, id=c("Yr","FltSvy","Nsamp"))
             new.lencomp.sel$Length <- as.numeric(as.character(new.lencomp.sel$variable))
             new.lencomp.sel$Nb.len <- as.numeric(new.lencomp.sel$value)
