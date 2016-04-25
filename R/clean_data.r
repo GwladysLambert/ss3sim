@@ -172,8 +172,7 @@ clean_data <- function(dat_list, index_params=NULL, lcomp_params=NULL,
           }
           
           if (add.MLA==T) {
-            
-            
+     
             # needs to become a separate function
             
             new.calcomp.sel <- new.calcomp[,c(1,3,7,9,10:ncol(new.calcomp))]
@@ -189,12 +188,15 @@ clean_data <- function(dat_list, index_params=NULL, lcomp_params=NULL,
             
             #merge with real number of lengths
             new.lencomp.sel <- dat_list$lencomp[,c(1,3,6:ncol(dat_list$lencomp))]
-            names(new.lencomp.sel)[4:ncol(new.lencomp.sel)] <- dat_list$"lbin_vector" 
+            names(new.lencomp.sel)[4:ncol(new.lencomp.sel)] <- dat_list$lbin_vector 
             new.lencomp.sel <- melt(new.lencomp.sel, id=c("Yr","FltSvy","Nsamp"))
             new.lencomp.sel$Length <- as.numeric(as.character(new.lencomp.sel$variable))
             new.lencomp.sel$Nb.len <- as.numeric(new.lencomp.sel$value)
             
-            new.calcomp.sel <- merge(new.lencomp.sel, new.calcomp.sel, by=c("Yr","FltSvy"), all.y=T)
+            save_sign <- new.calcomp.sel$FltSvy
+            new.calcomp.sel$FltSvy <- abs(new.calcomp.sel$FltSvy)
+            new.calcomp.sel <- merge(new.calcomp.sel, new.lencomp.sel, by=c("Yr","FltSvy"), all.x=T)
+            save_sign -> new.calcomp.sel$FltSvy
             new.calcomp.sel$real.nb <- new.calcomp.sel$Nb.len*new.calcomp.sel$Percentage
             new.calcomp.sel$real.nb.len <- new.calcomp.sel$real.nb*new.calcomp.sel$Length
             
@@ -222,14 +224,14 @@ clean_data <- function(dat_list, index_params=NULL, lcomp_params=NULL,
             
             for (i in unique(x$Yr)) {
               for (j in unique(x$FltSvy)) {
-                x[x$Yr==i & x$FltSvy==j,8:ncol(x)] <- res[res$Yr==i & res$FltSvy==j,3:ncol(res)]
+                x[x$Yr==i & abs(x$FltSvy)==abs(j),8:ncol(x)] <- res[res$Yr==i & abs(res$FltSvy)==abs(j),3:ncol(res)]
               }
             }
             
             samplesize <- cbind.data.frame(Yr=samplesize[,c(1)],Seas=1,FltSvy=samplesize[,2],Gender=0, Part=0,AgeErr=1,Ignore=1,samplesize[,c(3:ncol(samplesize))]) 
             names(samplesize) <- names(x)
             final <- rbind(x,samplesize)
-            final <- final[order(final$Yr,final$FltSvy),]
+            final <- final[order(final$Yr,abs(final$FltSvy)),]
             
             for (i in seq(2,dim(final)[1],by=2)) { final[i,1:7]<-""}
             
