@@ -161,7 +161,7 @@ clean_data <- function(dat_list, index_params=NULL, lcomp_params=NULL,
           new.agecomp$FltSvy <- c(- new.agecomp$FltSvy)
           new.calcomp <- do.call(rbind,
           lapply(1:length(calcomp_params$fleets), function(i)
-             calcomp[calcomp$FltSvy == calcomp_params$fleets[i] &
+             calcomp[abs(calcomp$FltSvy) == calcomp_params$fleets[i] &
                          calcomp$Yr %in% calcomp_params$years[[i]],]))
           new.agecomp$Nsamp <- aggregate(Nsamp ~ Yr,new.calcomp, sum)[,2]
           # 
@@ -195,10 +195,11 @@ clean_data <- function(dat_list, index_params=NULL, lcomp_params=NULL,
             
             save_sign <- new.calcomp.sel$FltSvy
             new.calcomp.sel$FltSvy <- abs(new.calcomp.sel$FltSvy)
-            new.calcomp.sel <- merge(new.calcomp.sel, new.lencomp.sel, by=c("Yr","FltSvy"), all.x=T)
+            new.calcomp.sel <- merge(new.calcomp.sel, new.lencomp.sel, by.x=c("Yr","FltSvy","Lbin_lo"), 
+                                     by=c("Yr","FltSvy","Length"), all.x=T)
             save_sign -> new.calcomp.sel$FltSvy
             new.calcomp.sel$real.nb <- new.calcomp.sel$Nb.len*new.calcomp.sel$Percentage
-            new.calcomp.sel$real.nb.len <- new.calcomp.sel$real.nb*new.calcomp.sel$Length
+            new.calcomp.sel$real.nb.len <- new.calcomp.sel$real.nb*new.calcomp.sel$Lbin_lo
             
             res <- aggregate( cbind(real.nb,real.nb.len) ~ Yr+ FltSvy + Age, new.calcomp.sel, sum)
             res$MLA <- res$real.nb.len/res$real.nb
