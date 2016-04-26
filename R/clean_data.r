@@ -224,7 +224,8 @@ clean_data <- function(dat_list, index_params=NULL, lcomp_params=NULL,
             x <- cbind.data.frame(new.agecomp[,c(1:6)],Ignore=1,new.agecomp[,c(10:dim(new.agecomp)[2])])
             
             for (i in unique(x$Yr)) {
-              for (j in unique(x$FltSvy)) {
+              sub <- x[x$Yr==i,]
+              for (j in unique(sub$FltSvy)) {
                 x[x$Yr==i & abs(x$FltSvy)==abs(j),8:ncol(x)] <- res[res$Yr==i & abs(res$FltSvy)==abs(j),3:ncol(res)]
               }
             }
