@@ -158,13 +158,15 @@ clean_data <- function(dat_list, index_params=NULL, lcomp_params=NULL,
                                lapply(1:length(calcomp_params$fleets), function(i)
                                  agecomp[agecomp$FltSvy == calcomp_params$fleets[i] &
                                            agecomp$Yr %in% calcomp_params$years[[i]],]))
-          new.agecomp$FltSvy <- c(- new.agecomp$FltSvy)
           new.calcomp <- do.call(rbind,
           lapply(1:length(calcomp_params$fleets), function(i)
              calcomp[abs(calcomp$FltSvy) == calcomp_params$fleets[i] &
                          calcomp$Yr %in% calcomp_params$years[[i]],]))
-          new.agecomp$Nsamp <- aggregate(Nsamp ~ Yr,new.calcomp, sum)[,2]
-          # 
+          temp_Nsamp <- aggregate(Nsamp ~ Yr + FltSvy,new.calcomp, sum)
+          new.agecomp <- new.agecomp[order(new.agecomp$FltSvy, new.agecomp$Yr),]
+          temp_Nsamp <- temp_Nsamp[order(temp_Nsamp$FltSvy, temp_Nsamp$Yr),]
+          new.agecomp$Nsamp <- temp_Nsamp$Nsamp
+          new.agecomp$FltSvy <- c(- new.agecomp$FltSvy)
           
           if (fit.on.agecomp==T) {
             new.agecomp$FltSvy <- c(- new.agecomp$FltSvy)
