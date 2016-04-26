@@ -197,7 +197,7 @@ clean_data <- function(dat_list, index_params=NULL, lcomp_params=NULL,
             new.calcomp.sel$FltSvy <- abs(new.calcomp.sel$FltSvy)
             new.calcomp.sel <- merge(new.calcomp.sel, new.lencomp.sel, by.x=c("Yr","FltSvy","Lbin_lo"), 
                                      by=c("Yr","FltSvy","Length"), all.x=T)
-            save_sign -> new.calcomp.sel$FltSvy
+            if (save_sign[1]<0) new.calcomp.sel$FltSvy <- c(-new.calcomp.sel$FltSvy)
             new.calcomp.sel$real.nb <- new.calcomp.sel$Nb.len*new.calcomp.sel$Percentage
             new.calcomp.sel$real.nb.len <- new.calcomp.sel$real.nb*new.calcomp.sel$Lbin_lo
             
@@ -226,7 +226,12 @@ clean_data <- function(dat_list, index_params=NULL, lcomp_params=NULL,
             for (i in unique(x$Yr)) {
               sub <- x[x$Yr==i,]
               for (j in unique(sub$FltSvy)) {
-                x[x$Yr==i & abs(x$FltSvy)==abs(j),8:ncol(x)] <- res[res$Yr==i & abs(res$FltSvy)==abs(j),3:ncol(res)]
+                if (dim(res[res$Yr==i & abs(res$FltSvy)==abs(j),3:ncol(res)])[1]!=0) {
+                  x[x$Yr==i & abs(x$FltSvy)==abs(j),8:ncol(x)] <- res[res$Yr==i & abs(res$FltSvy)==abs(j),3:ncol(res)]
+                }
+                if (dim(res[res$Yr==i & abs(res$FltSvy)==abs(j),3:ncol(res)])[1]==0) {
+                  x[x$Yr==i & abs(x$FltSvy)==abs(j),8:ncol(x)] <- NA
+                }
               }
             }
             
