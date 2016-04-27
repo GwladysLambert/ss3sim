@@ -63,7 +63,7 @@
 #' @export
 clean_data <- function(dat_list, index_params=NULL, lcomp_params=NULL,
                        agecomp_params=NULL, calcomp_params=NULL,
-                       mlacomp_params=NULL, verbose=FALSE,fit.on.agecomp=T, add.MLA=T){
+                       mlacomp_params=NULL, verbose=FALSE){
     ## Should somehow have a check that dat_list is valid. None for now.
     ## Note that verbose=TRUE will print how many rows are removed. The
     ## sampling functions should themselves remove data for most cases, but
@@ -168,13 +168,11 @@ clean_data <- function(dat_list, index_params=NULL, lcomp_params=NULL,
           new.agecomp$Nsamp <- temp_Nsamp$Nsamp
           new.agecomp$FltSvy <- c(- new.agecomp$FltSvy)
           
-          if (fit.on.agecomp==T) {
+          if (!is.null(calcomp_params$fit.on.agecomp)) {
             new.agecomp$FltSvy <- c(- new.agecomp$FltSvy)
             new.calcomp$FltSvy <- c(- new.calcomp$FltSvy)
           }
-          
-          if (add.MLA==T) {
-     
+ 
             # needs to become a separate function
             
             new.calcomp.sel <- new.calcomp[,c(1,3,7,9,10:ncol(new.calcomp))]
@@ -247,6 +245,8 @@ clean_data <- function(dat_list, index_params=NULL, lcomp_params=NULL,
             dat_list$MeanSize_at_Age_obs<-final
             dat_list$N_MeanSize_at_Age_obs<-nrow(final)/2
             
+            if (is.null(calcomp_params$add.MLA)) {
+              dat_list$MeanSize_at_Age_obs$Yr <- c(-dat_list$MeanSize_at_Age_obs$Yr)
           }
           
       }
