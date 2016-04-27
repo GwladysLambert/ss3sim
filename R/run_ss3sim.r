@@ -196,7 +196,8 @@ run_ss3sim <- function(iterations, scenarios, case_folder,
       mlacomp_params    = a$mlacomp,
       em_binning_params = a$em_binning,
       retro_params      = a$retro,
-      estim_params      = a$E)
+      estim_params      = a$E,
+      a_params          = a$A) ### ADDED AGEING ERROR
   })
 
   # Note that inside a foreach loop you pop out of your current
