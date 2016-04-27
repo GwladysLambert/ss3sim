@@ -116,6 +116,7 @@ change_e <- function(ctl_file_in = "em.ctl",
   }
   #Read in the ctl file for the estimation model
   ss3.ctl <- readLines(ctl_file_in)
+  ss3.ctl <- gsub("\t", " ", ss3.ctl)
   #Run external estimator for growth if needed
   if(any(grepl("change_e_vbgf", par_int))) {
     if (length(dir(pattern = "vbgf")) != 1) {
