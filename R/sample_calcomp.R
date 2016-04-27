@@ -20,7 +20,7 @@
 #' @export
 
 sample_calcomp <- function(dat_list, outfile, fleets = c(1,2), years,
-                           write_file=TRUE, Nsamp, ESS.len=NULL, fixed.number=T){
+                           write_file=TRUE, Nsamp, ESS.len=NULL, fixed.number){
   ## The samples are taken from the expected values, where the
   ## age-at-length data is in the age matrix but has a -1 for Lbin_lo and
   ## Lbin_hi, so subset those out, but don't delete the age values since
@@ -72,7 +72,7 @@ sample_calcomp <- function(dat_list, outfile, fleets = c(1,2), years,
   newcomp.len.list <- list() # temp storage for the new rows
   k <- 1                 # each k is a new row of data, to be rbind'ed later
   
-  if (fixed.number==F) {
+  if (is.null(fixed.number)) {
     ## Loop through each fleet
     for(i in 1:length(fleets)){
       fl <- fleets[i]
@@ -160,7 +160,7 @@ sample_calcomp <- function(dat_list, outfile, fleets = c(1,2), years,
   }
   
   
-  if (fixed.number==T) {
+  if (!is.null(fixed.number)) {
     ## Loop through each fleet
     for(i in 1:length(fleets)){
       fl <- fleets[i]
