@@ -20,7 +20,7 @@
 #' @export
 
 sample_calcomp <- function(dat_list, outfile, fleets = c(1,2), years,
-                           write_file=TRUE, Nsamp, ESS.len=NULL, fixed.number){
+                           write_file=TRUE, Nsamp, ESS.len=NULL, fixed.number, fit.on.agecomp ,add.MLA){
   ## The samples are taken from the expected values, where the
   ## age-at-length data is in the age matrix but has a -1 for Lbin_lo and
   ## Lbin_hi, so subset those out, but don't delete the age values since
