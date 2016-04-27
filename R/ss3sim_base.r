@@ -175,7 +175,7 @@
 ss3sim_base <- function(iterations, scenarios, f_params,
   index_params, lcomp_params, agecomp_params, calcomp_params = NULL,
   wtatage_params = NULL, mlacomp_params = NULL, em_binning_params = NULL,
-  estim_params = NULL, tv_params = NULL, om_dir, em_dir,
+  estim_params = NULL, tv_params = NULL, a_params = NULL, om_dir, em_dir, ### ADDED AGERR
   retro_params = NULL, data_params = NULL, call_change_data = TRUE,
   user_recdevs = NULL, user_recdevs_warn = TRUE, bias_adjust = FALSE,
   bias_nsim = 5, bias_already_run = FALSE, hess_always = FALSE,
@@ -320,7 +320,37 @@ ss3sim_base <- function(iterations, scenarios, f_params,
                     lcomp_constant   = data_params$lcomp_constant,
                     write_file       = TRUE)
       }
+ ##------------------------------------------------------------------##
+      ## Add ageing error in the expected age data, before sampling error! #
+      ##------------------------------------------------------------------##
+      ### Include ageing error in the dummy data
+      ### For each line where a data matrix has been defined - include the agerr # in
+      ### If no ageing error has been defined arbitrarily use matrix 1 (i.e. no ageing error)
 
+      # Change A - i.e. add and change ageing error matrices
+      datfile.orig <- SS_readdat(pastef(sc, i, "om", "ss3.dat"),
+                                 verbose = FALSE)
+      if(!is.null(a_params)) {
+        a_params <- add_nulls(a_params, c("fleets","seas","gender","years","agerr_mat",
+                                          "which_agerr","by.fleets","by.seas","by.gender","by.years"))
+        if(!is.null(a_params$fleets)){
+          dat_list <- with(a_params, 
+                           change_a(dat_list     = datfile.orig,
+                                    outfile      = pastef(sc, i, "om", "ss3.dat"),
+                                    fleets       = fleets,
+                                    years        = years,
+                                    seas         = seas,
+                                    gender       = gender,
+                                    agerr_mat    = agerr_mat,
+                                    which_agerr  = which_agerr,
+                                    by.fleets    = by.fleets,
+                                    by.seas      = by.seas,
+                                    by.gender    = by.gender,
+                                    by.years     = by.years,
+                                    write_file   = TRUE))
+        }
+      }
+           
       # Run the operating model and copy the dat file over
       run_ss3model(scenarios = sc, iterations = i, type = "om", ...)
       if(!file.exists(pastef(sc, i, "om", "data.ss_new")))
@@ -426,13 +456,14 @@ ss3sim_base <- function(iterations, scenarios, f_params,
       ## package. Thus the sampling of agecomps has no influence on the
       ## calcomp data and vice versa.
       if(!is.null(calcomp_params$fleets)){
-          calcomp_params <- add_nulls(calcomp_params, c("fleets", "years", "Nsamp"))
+          calcomp_params <- add_nulls(calcomp_params, c("fleets", "years", "Nsamp","fixed.number","fit.on.agecomp","add.MLA"))
           dat_list <- with(calcomp_params,
                           sample_calcomp(dat_list         = dat_list,
                                          outfile          = NULL,
                                          fleets           = fleets,
                                          years            = years,
                                          Nsamp            = Nsamp,
+                                         fixed.number     = fixed.number,
                                          write_file       = FALSE))
       }
       ## Manipulate EM starter file for a possible retrospective analysis
