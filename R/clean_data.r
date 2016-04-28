@@ -129,6 +129,7 @@ clean_data <- function(dat_list, index_params=NULL, lcomp_params=NULL,
     a <- dat_list$agecomp
     agecomp <- a[a$Lbin_lo < 0,]
     calcomp <- a[a$Lbin_lo >= 0, ]
+    
     ## case with no age or cal data
     if(is.null(agecomp_params$fleets) & is.null(calcomp_params$fleets)){
         new.agecomp <- new.calcomp <- NULL
@@ -151,8 +152,9 @@ clean_data <- function(dat_list, index_params=NULL, lcomp_params=NULL,
              calcomp[calcomp$FltSvy == calcomp_params$fleets[i] &
                          calcomp$Yr %in% calcomp_params$years[[i]],]))
       } else if(is.null(agecomp_params$fleets) & !is.null(calcomp_params$fleets)){
-          ## case with only cal comps
-        ## Do not remove age comp info but turn it off so it still esstimates it but not in loglik
+        
+        ## case with only cal comps
+        ## Do not remove age comp info but turn it off (or on- choice) so it still estimates it but not in loglik
           #new.agecomp <- NULL
           new.agecomp <- do.call(rbind,
                                lapply(1:length(calcomp_params$fleets), function(i)
@@ -235,7 +237,8 @@ clean_data <- function(dat_list, index_params=NULL, lcomp_params=NULL,
               }
             }
             
-            samplesize <- cbind.data.frame(Yr=samplesize[,c(1)],Seas=1,FltSvy=samplesize[,2],Gender=0, Part=0,AgeErr=1,Ignore=1,samplesize[,c(3:ncol(samplesize))]) 
+            samplesize <- samplesize[order(samplesize$FltSvy, samplesize$Yr),]
+            samplesize <- cbind.data.frame(Yr=samplesize[,c(1)],Seas=new.agecomp[,"Seas"],FltSvy=samplesize[,2],Gender=new.agecomp[,"Gender"], Part=0,AgeErr=new.agecomp[,"Ageerr"],Ignore=1,samplesize[,c(3:ncol(samplesize))]) 
             names(samplesize) <- names(x)
             final <- rbind(x,samplesize)
             final <- final[order(final$Yr,abs(final$FltSvy)),]
