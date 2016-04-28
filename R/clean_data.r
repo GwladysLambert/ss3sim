@@ -240,14 +240,15 @@ clean_data <- function(dat_list, index_params=NULL, lcomp_params=NULL,
             final <- rbind(x,samplesize)
             final <- final[order(final$Yr,abs(final$FltSvy)),]
             
-            for (i in seq(2,dim(final)[1],by=2)) { final[i,1:7]<-""}
+            
+          if (is.null(calcomp_params$add.MLA)) {
+              final$Yr <- c(-as.numeric(final$Yr))
+          }  
+            
+           for (i in seq(2,dim(final)[1],by=2)) { final[i,1:7]<-""}
             
             dat_list$MeanSize_at_Age_obs<-final
             dat_list$N_MeanSize_at_Age_obs<-nrow(final)/2
-            
-            if (is.null(calcomp_params$add.MLA)) {
-              dat_list$MeanSize_at_Age_obs$Yr <- c(-dat_list$MeanSize_at_Age_obs$Yr)
-          }
           
       }
     
