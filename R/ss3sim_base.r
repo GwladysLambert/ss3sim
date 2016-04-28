@@ -320,7 +320,8 @@ ss3sim_base <- function(iterations, scenarios, f_params,
                     lcomp_constant   = data_params$lcomp_constant,
                     write_file       = TRUE)
       }
- ##------------------------------------------------------------------##
+      
+      ##------------------------------------------------------------------##
       ## Add ageing error in the expected age data, before sampling error! #
       ##------------------------------------------------------------------##
       ### Include ageing error in the dummy data
@@ -331,22 +332,13 @@ ss3sim_base <- function(iterations, scenarios, f_params,
       datfile.orig <- SS_readdat(pastef(sc, i, "om", "ss3.dat"),
                                  verbose = FALSE)
       if(!is.null(a_params)) {
-        a_params <- add_nulls(a_params, c("fleets","seas","gender","years","agerr_mat",
-                                          "which_agerr","by.fleets","by.seas","by.gender","by.years"))
-        if(!is.null(a_params$fleets)){
+        a_params <- add_nulls(a_params, c("df","agerr_mat"))
+        if(!is.null(a_params$df)){
           dat_list <- with(a_params, 
                            change_a(dat_list     = datfile.orig,
                                     outfile      = pastef(sc, i, "om", "ss3.dat"),
-                                    fleets       = fleets,
-                                    years        = years,
-                                    seas         = seas,
-                                    gender       = gender,
+                                    df           = df,
                                     agerr_mat    = agerr_mat,
-                                    which_agerr  = which_agerr,
-                                    by.fleets    = by.fleets,
-                                    by.seas      = by.seas,
-                                    by.gender    = by.gender,
-                                    by.years     = by.years,
                                     write_file   = TRUE))
         }
       }
@@ -373,6 +365,7 @@ ss3sim_base <- function(iterations, scenarios, f_params,
                      years           = years,
                      sds_obs         = sds_obs,
                      write_file      = FALSE))
+      
       ## Add error in the length comp data
       if(!is.null(lcomp_params$fleets)){
           lcomp_params <- add_nulls(lcomp_params,
